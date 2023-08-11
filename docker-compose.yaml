@@ -1,0 +1,26 @@
+version: "3"
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:5000
+    volumes:
+      - ./static:/app/static
+    depends_on:
+      - redis
+  redis:
+    image: "redis:latest"
+  celery-worker:
+    build: .
+    command: ["celery", "-A", "pythonTask", "worker", "--loglevel=info"]
+    volumes:
+      - .:/usr/src/app/
+    depends_on:
+      - redis
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
